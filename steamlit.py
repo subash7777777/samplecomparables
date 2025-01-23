@@ -73,46 +73,57 @@ def main():
         uploaded_file = st.session_state.uploaded_file
 
     if uploaded_file is not None:
-        # Load data
-        data = pd.read_csv(uploaded_file)
+        try:
+            # Load data
+            data = pd.read_csv(uploaded_file)
 
-        # Initialize session state for tracking property index
-        if "current_index" not in st.session_state:
-            st.session_state.current_index = 0
+            if data.empty:
+                st.error("The uploaded CSV file is empty. Please upload a valid file.")
+                return
 
-        # Navigation buttons
-        col1, col2 = st.columns([1, 1])
-        with col1:
-            if st.button("Previous") and st.session_state.current_index > 0:
-                st.session_state.current_index -= 1
-        with col2:
-            if st.button("Next") and st.session_state.current_index < len(data) - 1:
-                st.session_state.current_index += 1
+            # Initialize session state for tracking property index
+            if "current_index" not in st.session_state:
+                st.session_state.current_index = 0
 
-        # Select subject property based on current index
-        subject_index = st.session_state.current_index
-        subject_property = data.iloc[subject_index]
+            # Navigation buttons
+            col1, col2 = st.columns([1, 1])
+            with col1:
+                if st.button("Previous") and st.session_state.current_index > 0:
+                    st.session_state.current_index -= 1
+            with col2:
+                if st.button("Next") and st.session_state.current_index < len(data) - 1:
+                    st.session_state.current_index += 1
 
-        # Display subject property
-        st.subheader(f"Subject Property (Index: {subject_index})")
-        st.dataframe(subject_property.to_frame().T.style.set_properties(**{'background-color': '#eaf4fc', 'border': '1px solid #007bff'}))
+            # Select subject property based on current index
+            subject_index = st.session_state.current_index
+            subject_property = data.iloc[subject_index]
 
-        # Find comparables
-        comparables = find_comparables(subject_property, data)
+            # Display subject property
+            st.subheader(f"Subject Property (Index: {subject_index})")
+            st.dataframe(subject_property.to_frame().T.style.set_properties(**{'background-color': '#eaf4fc', 'border': '1px solid #007bff'}))
 
-        # Display comparables
-        st.subheader("Comparable Properties:")
-        if not comparables.empty:
-            st.dataframe(
-                comparables.style.set_properties(
-                    **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
+            # Find comparables
+            comparables = find_comparables(subject_property, data)
+
+            # Display comparables
+            st.subheader("Comparable Properties:")
+            if not comparables.empty:
+                st.dataframe(
+                    comparables.style.set_properties(
+                        **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
+                    )
                 )
-            )
-        else:
-            st.write("No comparable properties found based on the given criteria.")
+            else:
+                st.write("No comparable properties found based on the given criteria.")
 
+        except pd.errors.EmptyDataError:
+            st.error("The uploaded file is empty or not readable. Please upload a valid CSV file.")
+
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()
+
 
 
