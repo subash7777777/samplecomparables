@@ -60,7 +60,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.title("Hotel Comparable Analysis")
+    st.title("Comparable Analysis")
 
     # File upload
     uploaded_file = st.file_uploader("Upload your hotel data (CSV)", type="csv")
