@@ -63,7 +63,7 @@ def main():
     st.title("Comparable Analysis")
 
     # File upload
-    uploaded_file = st.file_uploader("Upload your hotel data (CSV)", type="csv")
+    uploaded_file = st.file_uploader("Upload your data (CSV)", type="csv")
 
     if uploaded_file is not None:
         # Load data
