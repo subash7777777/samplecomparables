@@ -36,7 +36,22 @@ def find_comparables(subject_property, dataset):
 
     return filtered_df
 
+
 def main():
+    # Apply custom styles
+    st.markdown(
+        """
+        <style>
+        .main { background-color: #f7f9fc; }
+        .stButton>button { background-color: #007bff; color: white; border-radius: 5px; }
+        .stButton>button:hover { background-color: #0056b3; }
+        h1 { color: #004085; }
+        .dataframe { background-color: #ffffff; border-radius: 10px; padding: 10px; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     st.title("Hotel Comparable Analysis")
 
     # File upload
@@ -46,38 +61,38 @@ def main():
         # Load data
         data = pd.read_csv(uploaded_file)
 
-        # Dashboard: Number of rows in the uploaded file
-        st.subheader("Dataset Overview")
-        st.write(f"Total Number of Rows: {len(data)}")
+        # Initialize session state for tracking property index
+        if "current_index" not in st.session_state:
+            st.session_state.current_index = 0
 
-        # Option to select subject property index
-        st.subheader("Select Property for Comparison")
-        subject_index = st.slider("Select Subject Property Index", min_value=0, max_value=len(data)-1, step=1)
+        # Navigation buttons
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Previous") and st.session_state.current_index > 0:
+                st.session_state.current_index -= 1
+        with col2:
+            if st.button("Next") and st.session_state.current_index < len(data) - 1:
+                st.session_state.current_index += 1
+
+        # Select subject property based on current index
+        subject_index = st.session_state.current_index
         subject_property = data.iloc[subject_index]
 
         # Display subject property
-        st.write("Subject Property:")
-        st.dataframe(subject_property.to_frame().T)
+        st.subheader(f"Subject Property (Index: {subject_index})")
+        st.dataframe(subject_property.to_frame().T.style.set_properties(**{'background-color': '#eaf4fc', 'border': '1px solid #007bff'}))
 
-        # Find comparables for the selected property
+        # Find comparables
         comparables = find_comparables(subject_property, data)
 
         # Display comparables
-        st.write("Comparable Properties:")
-        st.dataframe(comparables)
+        st.subheader("Comparable Properties:")
+        st.dataframe(
+            comparables.style.set_properties(
+                **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
+            )
+        )
 
-        # Full Dashboard: Comparables for all properties
-        st.subheader("Full Dashboard: All Properties and Their Comparables")
-        for index in range(len(data)):
-            subject_property = data.iloc[index]
-            comparables = find_comparables(subject_property, data)
-
-            st.write(f"### Property {index + 1}")
-            st.write("Subject Property:")
-            st.dataframe(subject_property.to_frame().T)
-
-            st.write("Comparable Properties:")
-            st.dataframe(comparables)
 
 if __name__ == "__main__":
     main()
