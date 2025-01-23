@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-
+import plotly.express as px
+import plotly.graph_objs as go
 
 def find_comparables(subject_property, dataset):
     """
@@ -44,6 +45,26 @@ def find_comparables(subject_property, dataset):
 
     return filtered_df
 
+def count_comparables(dataset):
+    """
+    Count comparable properties for each property in the dataset.
+
+    Args:
+        dataset: The pandas DataFrame containing all properties.
+
+    Returns:
+        A DataFrame with comparable property counts for each property.
+    """
+    comparable_counts = []
+
+    for _, subject_property in dataset.iterrows():
+        comparables = find_comparables(subject_property, dataset)
+        comparable_counts.append({
+            'Hotel Name': subject_property['Hotel Name'],
+            'Comparable Count': len(comparables)
+        })
+
+    return pd.DataFrame(comparable_counts)
 
 def main():
     # Apply custom styles
@@ -53,7 +74,7 @@ def main():
         .main { background-color: #f7f9fc; }
         .stButton>button { background-color: #007bff; color: white; border-radius: 5px; }
         .stButton>button:hover { background-color: #0056b3; }
-        h1 { color: #004085; }
+        h1, h2 { color: #004085; }
         .dataframe { background-color: #ffffff; border-radius: 10px; padding: 10px; }
         </style>
         """,
@@ -103,6 +124,31 @@ def main():
             )
         else:
             st.write("No comparable properties found based on the given criteria.")
+
+        # Comparables Dashboard
+        st.header("Comparables Dashboard")
+
+        # Count comparables for all properties
+        comparable_counts = count_comparables(data)
+
+        # Visualization of comparable counts
+        st.subheader("Comparable Properties Distribution")
+        fig = px.histogram(
+            comparable_counts, 
+            x='Comparable Count', 
+            title='Distribution of Comparable Property Counts',
+            labels={'Comparable Count': 'Number of Comparable Properties'}
+        )
+        st.plotly_chart(fig)
+
+        # Top and Bottom Properties by Comparable Count
+        st.subheader("Top 5 Properties with Most Comparables")
+        top_comparables = comparable_counts.nlargest(5, 'Comparable Count')
+        st.dataframe(top_comparables)
+
+        st.subheader("Bottom 5 Properties with Least Comparables")
+        bottom_comparables = comparable_counts.nsmallest(5, 'Comparable Count')
+        st.dataframe(bottom_comparables)
 
 
 if __name__ == "__main__":
