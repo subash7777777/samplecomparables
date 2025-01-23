@@ -4,7 +4,8 @@ import pandas as pd
 def find_comparables(subject_property, dataset):
     """
     Finds the 5 most comparable properties for the given subject property,
-    prioritizing those with the closest market value and VPU/VPR.
+    ensuring the VPR value is less than 50% of the subject property's VPR
+    and all conditions are strictly met.
 
     Args:
         subject_property: A pandas Series representing the subject property.
@@ -23,8 +24,12 @@ def find_comparables(subject_property, dataset):
         (dataset['Type'] == 'Hotel') &
         (dataset['Market Value-2024'] >= subject_property['Market Value-2024'] - 100000) &
         (dataset['Market Value-2024'] <= subject_property['Market Value-2024'] + 100000) &
-        (dataset['VPR'] <= subject_property['VPR'] * 1.5)
+        (dataset['VPR'] < subject_property['VPR'] / 2)  # VPR must be less than 50% of the subject property
     ].copy()
+
+    # If no properties match the criteria, return an empty DataFrame
+    if filtered_df.empty:
+        return pd.DataFrame()
 
     # Calculate differences
     filtered_df['Market_Value_Diff'] = abs(filtered_df['Market Value-2024'] - subject_property['Market Value-2024'])
@@ -52,7 +57,7 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.title("Comparable Analysis")
+    st.title("Hotel Comparable Analysis")
 
     # File upload
     uploaded_file = st.file_uploader("Upload your hotel data (CSV)", type="csv")
@@ -87,11 +92,14 @@ def main():
 
         # Display comparables
         st.subheader("Comparable Properties:")
-        st.dataframe(
-            comparables.style.set_properties(
-                **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
+        if not comparables.empty:
+            st.dataframe(
+                comparables.style.set_properties(
+                    **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
+                )
             )
-        )
+        else:
+            st.write("No comparable properties found based on the given criteria.")
 
 
 if __name__ == "__main__":
