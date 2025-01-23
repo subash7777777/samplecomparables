@@ -6,7 +6,15 @@ def find_comparables(subject_property, dataset):
     """
     Finds the 5 most comparable properties for the given subject property,
     ensuring the VPR value is within the specified range and all conditions are strictly met.
+
+    Args:
+        subject_property: A pandas Series representing the subject property.
+        dataset: The pandas DataFrame containing all properties.
+
+    Returns:
+        A DataFrame with the 5 most comparable properties.
     """
+
     # Filter based on conditions
     filtered_df = dataset[
         (dataset['Hotel Name'] != subject_property['Hotel Name']) &
@@ -18,8 +26,8 @@ def find_comparables(subject_property, dataset):
         (dataset['Market Value-2024'] >= subject_property['Market Value-2024'] - 100000) &
         (dataset['Market Value-2024'] <= subject_property['Market Value-2024'] + 100000) &
         # VPR condition: between 50% and 100% of subject property's VPR (inclusive)
-        (dataset['VPR'] >= subject_property['VPR'] / 2) &
-        (dataset['VPR'] <= subject_property['VPR'])
+        (dataset['VPR'] >= subject_property['VPR'] / 2) & 
+        (dataset['VPR'] <= subject_property['VPR']) 
     ].copy()
 
     # If no properties match the criteria, return an empty DataFrame
@@ -35,6 +43,7 @@ def find_comparables(subject_property, dataset):
     filtered_df = filtered_df.sort_values(by=['Combined_Diff', 'Market_Value_Diff', 'VPU_VPR_Diff']).head(5)
 
     return filtered_df
+
 
 def main():
     # Apply custom styles
@@ -92,27 +101,28 @@ def main():
                     **{'background-color': '#ffffff', 'color': '#333', 'border': '1px solid #dddddd'}
                 )
             )
-
-            # Prepare a combined dataset for download
-            combined_data = pd.concat([subject_property.to_frame().T, comparables], ignore_index=True)
-
-            # Convert to Excel
-            output = io.BytesIO()
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                combined_data.to_excel(writer, index=False, sheet_name='Subject_and_Comparables')
-                writer.save()
-            excel_data = output.getvalue()
-
-            # Add download button
-            st.download_button(
-                label="Download Excel",
-                data=excel_data,
-                file_name="subject_and_comparables.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
         else:
             st.write("No comparable properties found based on the given criteria.")
 
+        # Download button
+        if st.button("Download Results"):
+            # Create a new DataFrame with subject property and comparables
+            result_df = pd.concat([subject_property.to_frame().T, comparables], axis=0, ignore_index=True) 
+            
+            # Create an in-memory buffer for the Excel file
+            output = io.BytesIO()
+            
+            # Write the DataFrame to the buffer as an Excel file
+            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+                result_df.to_excel(writer, index=False, sheet_name='Results')
+            
+            # Set the file name and download it
+            st.download_button(
+                "Download Excel",
+                data=output.getvalue(),
+                file_name='comparable_properties.xlsx',
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+
 if __name__ == "__main__":
     main()
-
