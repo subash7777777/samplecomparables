@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 
+
 def find_comparables(subject_property, dataset):
     """
     Finds the 5 most comparable properties for the given subject property,
-    ensuring the VPR value is less than 50% of the subject property's VPR
-    and all conditions are strictly met.
+    ensuring the VPR value is within the specified range and all conditions are strictly met.
 
     Args:
         subject_property: A pandas Series representing the subject property.
@@ -14,6 +14,7 @@ def find_comparables(subject_property, dataset):
     Returns:
         A DataFrame with the 5 most comparable properties.
     """
+
     # Filter based on conditions
     filtered_df = dataset[
         (dataset['Hotel Name'] != subject_property['Hotel Name']) &
@@ -24,7 +25,9 @@ def find_comparables(subject_property, dataset):
         (dataset['Type'] == 'Hotel') &
         (dataset['Market Value-2024'] >= subject_property['Market Value-2024'] - 100000) &
         (dataset['Market Value-2024'] <= subject_property['Market Value-2024'] + 100000) &
-        (dataset['VPR'] < subject_property['VPR'] / 2)  # VPR must be less than 50% of the subject property
+        # VPR condition: between 50% and 100% of subject property's VPR (inclusive)
+        (dataset['VPR'] >= subject_property['VPR'] / 2) &
+        (dataset['VPR'] <= subject_property['VPR'])
     ].copy()
 
     # If no properties match the criteria, return an empty DataFrame
