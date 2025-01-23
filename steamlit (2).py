@@ -36,7 +36,6 @@ def find_comparables(subject_property, dataset):
 
     return filtered_df
 
-
 def main():
     st.title("Hotel Comparable Analysis")
 
@@ -47,7 +46,12 @@ def main():
         # Load data
         data = pd.read_csv(uploaded_file)
 
-        # Select subject property
+        # Dashboard: Number of rows in the uploaded file
+        st.subheader("Dataset Overview")
+        st.write(f"Total Number of Rows: {len(data)}")
+
+        # Option to select subject property index
+        st.subheader("Select Property for Comparison")
         subject_index = st.slider("Select Subject Property Index", min_value=0, max_value=len(data)-1, step=1)
         subject_property = data.iloc[subject_index]
 
@@ -55,13 +59,25 @@ def main():
         st.write("Subject Property:")
         st.dataframe(subject_property.to_frame().T)
 
-        # Find comparables
+        # Find comparables for the selected property
         comparables = find_comparables(subject_property, data)
 
         # Display comparables
         st.write("Comparable Properties:")
         st.dataframe(comparables)
 
+        # Full Dashboard: Comparables for all properties
+        st.subheader("Full Dashboard: All Properties and Their Comparables")
+        for index in range(len(data)):
+            subject_property = data.iloc[index]
+            comparables = find_comparables(subject_property, data)
+
+            st.write(f"### Property {index + 1}")
+            st.write("Subject Property:")
+            st.dataframe(subject_property.to_frame().T)
+
+            st.write("Comparable Properties:")
+            st.dataframe(comparables)
 
 if __name__ == "__main__":
     main()
