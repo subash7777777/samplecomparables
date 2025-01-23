@@ -62,10 +62,15 @@ def main():
         unsafe_allow_html=True,
     )
 
-    st.title("Comparable Analysis")
+    st.title("Hotel Comparable Analysis")
 
-    # File upload
-    uploaded_file = st.file_uploader("Upload your hotel data (CSV)", type="csv")
+    # Use session state to check if the file is uploaded only once
+    if 'uploaded_file' not in st.session_state:
+        uploaded_file = st.file_uploader("Upload your hotel data (CSV)", type="csv")
+        if uploaded_file is not None:
+            st.session_state.uploaded_file = uploaded_file
+    else:
+        uploaded_file = st.session_state.uploaded_file
 
     if uploaded_file is not None:
         # Load data
@@ -110,8 +115,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-
-if __name__ == "__main__":
-    main()
 
