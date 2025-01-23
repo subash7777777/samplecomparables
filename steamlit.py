@@ -4,7 +4,7 @@ import pandas as pd
 def find_comparables(subject_property, dataset):
     """
     Finds the 5 most comparable properties for the given subject property,
-    ensuring the VPR value is less than 50% of the subject property's VPR
+    ensuring the VPR value is between 50% and 100% of the subject property's VPR
     and all conditions are strictly met.
 
     Args:
@@ -14,6 +14,10 @@ def find_comparables(subject_property, dataset):
     Returns:
         A DataFrame with the 5 most comparable properties.
     """
+    # Calculate the acceptable VPR range: 50% to 100% of the subject property's VPR
+    vpr_lower_limit = subject_property['VPR'] / 2
+    vpr_upper_limit = subject_property['VPR']
+
     # Filter based on conditions
     filtered_df = dataset[
         (dataset['Hotel Name'] != subject_property['Hotel Name']) &
@@ -24,7 +28,8 @@ def find_comparables(subject_property, dataset):
         (dataset['Type'] == 'Hotel') &
         (dataset['Market Value-2024'] >= subject_property['Market Value-2024'] - 100000) &
         (dataset['Market Value-2024'] <= subject_property['Market Value-2024'] + 100000) &
-        (dataset['VPR'] < subject_property['VPR'] / 2)  # VPR must be less than 50% of the subject property
+        (dataset['VPR'] >= vpr_lower_limit) &  # VPR must be >= 50% of the subject property
+        (dataset['VPR'] <= vpr_upper_limit)   # VPR must be <= 100% of the subject property
     ].copy()
 
     # If no properties match the criteria, return an empty DataFrame
@@ -100,6 +105,11 @@ def main():
             )
         else:
             st.write("No comparable properties found based on the given criteria.")
+
+
+if __name__ == "__main__":
+    main()
+
 
 
 if __name__ == "__main__":
