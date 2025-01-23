@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
-import io
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment
 
 def find_comparables(subject_property, dataset):
     """
@@ -106,16 +107,30 @@ def main():
 
         # Download button
         if st.button("Download Results"):
-            # Create a new DataFrame with subject property and comparables
-            result_df = pd.concat([subject_property.to_frame().T, comparables], axis=0, ignore_index=True) 
-            
-            # Create an in-memory buffer for the Excel file
+            # Create a new workbook
+            wb = Workbook()
+            ws = wb.active  # Get the active worksheet
+
+            # Write subject property data
+            ws.append(['Subject Property']) 
+            for key, value in subject_property.to_dict().items():
+                ws.append([key, value])
+            ws.append([])  # Add an empty row for separation
+
+            # Write comparable properties data
+            ws.append(['Comparable Properties'])
+            for index, row in comparables.iterrows():
+                ws.append(list(row.values))
+
+            # Apply formatting (optional)
+            for col in ws.iter_cols(min_index=1, max_index=len(subject_property)):
+                col[1].font = Font(bold=True)  # Bold header row
+                ws.column_dimensions[col[0].column_letter].width = 20  # Adjust column width
+
+            # Create an in-memory buffer and save the workbook
             output = io.BytesIO()
-            
-            # Write the DataFrame to the buffer as an Excel file
-            with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                result_df.to_excel(writer, index=False, sheet_name='Results')
-            
+            wb.save(output)
+
             # Set the file name and download it
             st.download_button(
                 "Download Excel",
