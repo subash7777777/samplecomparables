@@ -104,24 +104,82 @@ def main():
         else:
             st.write("No comparable properties found based on the given criteria.")
 
-        # Download button
-        if st.button("Download Results"):
-            # Create a new DataFrame with subject property and comparables
-            result_df = pd.concat([subject_property.to_frame().T, comparables], axis=0, ignore_index=True)
+if st.button("Download Results"):
+    # Initialize a list to store rows for the final Excel output
+    final_data = []
 
-            # Create an in-memory buffer for the Excel file
-            output = io.BytesIO()
+    # Iterate through each property in the dataset
+    for index, subject_property in data.iterrows():
+        # Find comparables for the current subject property
+        comparables = find_comparables(subject_property, data)
 
-            # Write the DataFrame to the buffer as an Excel file
-            result_df.to_excel(output, index=False, sheet_name='Results', engine='openpyxl') 
+        # Prepare a single row with subject property details and up to 5 comparables
+        row = [
+            subject_property['VPR'],
+            subject_property['Hotel Name'],
+            subject_property['Property Address'],
+            subject_property['Market Value-2024'],
+            subject_property['Hotel Class'],
+            subject_property['Owner Name/ LLC Name'],
+            subject_property['Owner Street Address'],
+            subject_property['Type'],
+            subject_property.get('account number', '')  # Handle missing columns gracefully
+        ]
 
-            # Set the file name and download it
-            st.download_button(
-                "Download Excel",
-                data=output.getvalue(),
-                file_name='comparable_properties.xlsx',
-                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
+        # Add details of up to 5 comparables
+        for i in range(5):
+            if i < len(comparables):
+                comparable = comparables.iloc[i]
+                row.extend([
+                    comparable['VPR'],
+                    comparable['Hotel Name'],
+                    comparable['Property Address'],
+                    comparable['Market Value-2024'],
+                    comparable['Hotel Class'],
+                    comparable['Owner Name/ LLC Name'],
+                    comparable['Owner Street Address'],
+                    comparable['Type'],
+                    comparable.get('account number', '')  # Handle missing columns gracefully
+                ])
+            else:
+                # Add empty columns if there are fewer than 5 comparables
+                row.extend([''] * 9)
+
+        # Append the row to the final data
+        final_data.append(row)
+
+    # Define the column names for the Excel file
+    columns = [
+        'VPR', 'Hotel Name', 'Property Address', 'Market Value-2024', 'Hotel Class',
+        'Owner Name/ LLC Name', 'Owner Street Address', 'Type', 'account number',
+        'comp1 VPR', 'comp1 Hotel Name', 'comp1 Property Address', 'comp1 Market Value-2024', 'comp1 Hotel Class',
+        'comp1 Owner Name/ LLC Name', 'comp1 Owner Street Address', 'comp1 Type', 'comp1 account number',
+        'comp2 VPR', 'comp2 Hotel Name', 'comp2 Property Address', 'comp2 Market Value-2024', 'comp2 Hotel Class',
+        'comp2 Owner Name/ LLC Name', 'comp2 Owner Street Address', 'comp2 Type', 'comp2 account number',
+        'comp3 VPR', 'comp3 Hotel Name', 'comp3 Property Address', 'comp3 Market Value-2024', 'comp3 Hotel Class',
+        'comp3 Owner Name/ LLC Name', 'comp3 Owner Street Address', 'comp3 Type', 'comp3 account number',
+        'comp4 VPR', 'comp4 Hotel Name', 'comp4 Property Address', 'comp4 Market Value-2024', 'comp4 Hotel Class',
+        'comp4 Owner Name/ LLC Name', 'comp4 Owner Street Address', 'comp4 Type', 'comp4 account number',
+        'comp5 VPR', 'comp5 Hotel Name', 'comp5 Property Address', 'comp5 Market Value-2024', 'comp5 Hotel Class',
+        'comp5 Owner Name/ LLC Name', 'comp5 Owner Street Address', 'comp5 Type', 'comp5 account number'
+    ]
+
+    # Create a DataFrame from the final data
+    output_df = pd.DataFrame(final_data, columns=columns)
+
+    # Create an in-memory buffer for the Excel file
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        output_df.to_excel(writer, index=False, sheet_name='Comparables')
+
+    # Download the Excel file
+    st.download_button(
+        "Download Excel",
+        data=output.getvalue(),
+        file_name='subject_properties_with_comparables.xlsx',
+        mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+
 
 if __name__ == "__main__":
     main()
