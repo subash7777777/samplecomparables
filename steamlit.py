@@ -41,8 +41,7 @@ def find_comparables(subject_property, dataset):
 
     # Sort and get the top 5
     filtered_df = filtered_df.sort_values(by=['Combined_Diff', 'Market_Value_Diff', 'VPU_VPR_Diff']).head(5)
-
-    return filtered_df
+    return filtered_df.drop(columns=['Market_Value_Diff', 'VPU_VPR_Diff', 'Combined_Diff'])
 
 
 def main():
