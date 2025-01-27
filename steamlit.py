@@ -132,11 +132,11 @@ def main():
     """, unsafe_allow_html=True)
 
     # Custom Title with Markdown for better styling
-    st.markdown('<h1 class="title">🏨 Hotel Property Comparables Analysis</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title"> Comparables Analysis</h1>', unsafe_allow_html=True)
 
     # File upload with custom styling
     st.markdown('<div class="stCard">', unsafe_allow_html=True)
-    uploaded_file = st.file_uploader("📊 Upload Your Property Dataset", type="csv", help="Please upload a CSV file with property details")
+    uploaded_file = st.file_uploader("Upload Your Dataset", type="csv", help="Please upload a CSV file with property details")
     st.markdown('</div>', unsafe_allow_html=True)
 
     if uploaded_file is not None:
